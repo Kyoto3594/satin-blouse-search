@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <!-- iPhone等のスマホ画面サイズに自動で最適化するための記述 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>サテン動画 検索アプリ</title>
+    <style>
+        :root {
+            --primary-color: #e91e63; /* 高級感・艶感を意識したピンク系 */
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-sub: #777777;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            -webkit-tap-highlight-color: transparent; /* タップ時の青い影を消す（iOS用） */
+        }
+
+        .header {
+            background-color: var(--card-bg);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .container {
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 検索フォーム（iPhoneで入力しやすい高さ） */
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            font-size: 16px; /* 16px未満にするとiPhoneで自動ズームしてしまうのを防ぐ */
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .search-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+
+        /* 絞り込み状態のバナー */
+        .filter-status {
+            background-color: #eee;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* 動画カードレイアウト */
+        .video-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 1px solid #eaeaea;
+        }
+
+        .video-thumbnail-placeholder {
+            background: linear-gradient(135deg, #e1e2e5 0%, #cfd1d6 100%);
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .video-info {
+            padding: 15px;
+        }
+
+        .video-category {
+            font-size: 12px;
+            color: var(--primary-color);
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .video-title {
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1.4;
+            margin: 0 0 10px 0;
+        }
+
+        /* タップしやすいタグ */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .tag-link {
+            background-color: #f0f2f5;
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            transition: all 0.2s;
+        }
+
+        .tag-link:active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .play-button {
+            display: block;
+            text-align: center;
+            background-color: #222;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .play-button:active {
+            background-color: #444;
+        }
+
+        .no-results {
+            text-align: center;
+            color: var(--text-sub);
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Satin Video Search</h1>
+    </div>
+
+    <div class="container">
+        <!-- 検索バー -->
+        <form class="search-form" action="/" method="GET">
+            <input type="text" name="q" class="search-input" value="{{ query }}" placeholder="例: サテン ブラウス 長袖" autocomplete="off">
+            <button type="submit" class="search-button">検索</button>
+        </form>
+
+        <!-- 現在の絞り込み条件表示 -->
+        {% if query or selected_tag %}
+            <div class="filter-status">
+                <span>
+                    絞り込み: <strong>{% if query %}"{{ query }}"{% else %}#{{ selected_tag }}{% endif %}</strong>
+                </span>
+                <a href="/" class="clear-btn">解除</a>
+            </div>
+        {% endif %}
+
+        <!-- 結果一覧 -->
+        <div class="results-list">
+            {% for work in results %}
+                <div class="video-card">
+                    <!-- サムネイル（将来的に画像や動画プレビューを配置） -->
+                    <div class="video-thumbnail-placeholder">
+                        Satin Video Preview
+                    </div>
+                    <div class="video-info">
+                        <div class="video-category">{{ work.category }}</div>
+                        <h2 class="video-title">{{ work.title }}</h2>
+                        
+                        <!-- タップして再検索できるタグリスト -->
+                        <div class="tags-container">
+                            {% for tag in work.tags %}
+                                <a href="/?tag={{ tag }}" class="tag-link">#{{ tag }}</a>
+                            {% endfor %}
+                        </div>
+
+                        <a href="{{ work.video_url }}" class="play-button">動画を再生する</a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="no-results">
+                    <p>該当するサテン動画が見つかりませんでした。</p>
+                    <a href="/" class="clear-btn">トップに戻る</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>
